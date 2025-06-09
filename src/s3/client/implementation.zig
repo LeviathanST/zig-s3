@@ -136,10 +136,15 @@ pub const S3Client = struct {
             .region = self.config.region,
             .service = "s3",
         };
+        const queries: ?[]const u8 = if (uri.query) |q| switch (q) {
+            .raw => |p| if (p.len == 0) null else p,
+            .percent_encoded => |p| if (p.len == 0) null else p,
+        } else null;
 
         const params = signer.SigningParams{
             .method = @tagName(method),
             .path = uri_path,
+            .queries = queries,
             .headers = headers,
             .body = body,
             .timestamp = timestamp, // Use same timestamp for signing

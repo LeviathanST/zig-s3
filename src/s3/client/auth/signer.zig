@@ -72,6 +72,8 @@ pub const SigningParams = struct {
     method: []const u8,
     /// Full request path including query string
     path: []const u8,
+    ///
+    queries: ?[]const u8,
     /// Request headers
     headers: std.StringHashMap([]const u8),
     /// Request body (or null)
@@ -116,6 +118,7 @@ pub fn signRequest(allocator: Allocator, credentials: Credentials, params: Signi
     const canonical_request = try createCanonicalRequest(allocator, .{
         .method = params.method,
         .path = params.path,
+        .queries = params.queries,
         .headers = headers_copy,
         .body = params.body,
         .timestamp = timestamp,
@@ -201,6 +204,7 @@ fn createCanonicalRequest(allocator: Allocator, params: SigningParams) ![]const 
     try canonical.append('\n');
 
     // Add canonical query string (empty for now)
+    if (params.queries) |q| try canonical.appendSlice(q);
     try canonical.append('\n');
 
     // Create sorted list of header names for consistent ordering
