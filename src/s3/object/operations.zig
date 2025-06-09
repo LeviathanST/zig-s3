@@ -194,6 +194,10 @@ pub fn listObjects(
         return S3Error.BucketNotFound;
     }
     if (req.response.status != .ok) {
+        std.log.err("Response status: {d}", .{req.response.status});
+        const message = req.reader().readAllAlloc(self.allocator, 4096) catch "Failed to read error message";
+        defer if (!std.mem.eql(u8, "Failed to read error message", message)) self.allocator.free(message);
+        std.log.err("Response message: \n{s}", .{message});
         return S3Error.InvalidResponse;
     }
 
